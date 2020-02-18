@@ -2,6 +2,8 @@
 #ifndef _PARSER
 #define _PARSER
 
+extern int mysh_debug;
+
 typedef struct command Command;
 
 struct command
