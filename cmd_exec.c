@@ -104,13 +104,13 @@ int run(Command *command, int num_commands)
                 // and neither does the next child i + 1
 
                 if (i > 1)
-                // Closing the read end of the pipe created by process i-2,
-                // since process i only reads inputs from pipe created by process i-1, and thus pipe of i-2 is not needed
+                    // Closing the read end of the pipe created by process i-2,
+                    // since process i only reads inputs from pipe created by process i-1, and thus pipe of i-2 is not needed
                     close(pipes[(i - 2) * 2]);
                 if (i < num_commands - 1)
-                // Closing the write end of the pipe created by the current process i, in the parent,
-                // since this pipe is passed into the next child process i+1, which, just like the parent,
-                // does not need the write end of process i's pipe
+                    // Closing the write end of the pipe created by the current process i, in the parent,
+                    // since this pipe is passed into the next child process i+1, which, just like the parent,
+                    // does not need the write end of process i's pipe
                     close(pipes[(i * 2) + 1]);
 
                 cmd_names[i] = command->tokens[0];

@@ -33,7 +33,7 @@ Command *command;
 int num_commands;
 int do_exit = 0;
 int cmd_valid = 1;
-int redir_output = 0;
+int redir_output = -1;
 
 int mysh_debug = 0;
 
@@ -83,7 +83,7 @@ static int print_error(int err_code, Command *command, char *error_msg)
 	return 0;
 }
 
-int redirect_io(Command *command, char* cmd_str)
+int redirect_io(Command *command, char *cmd_str)
 {
 	// Default initialize
 	command->in_stream = -1;
@@ -96,7 +96,7 @@ int redirect_io(Command *command, char* cmd_str)
 		char c = cmd_str[i];
 		if (c == '<' || c == '>')
 		{
-			if (bracket_idx == -1) 
+			if (bracket_idx == -1)
 				bracket_idx = i;
 			// open input file descriptor and copy to command
 			do
@@ -125,13 +125,13 @@ int redirect_io(Command *command, char* cmd_str)
 			}
 			else
 			{
-				if ((command->out_stream = open(file_name, O_WRONLY | O_CREAT, 0644)) < 0)
+				if ((command->out_stream = open(file_name, O_WRONLY | O_CREAT | O_TRUNC, 0644)) < 0)
 				{
 					perror(file_name);
 					// exit(EXIT_FAILURE);
 					return -1;
 				}
-				redir_output = 1;
+				redir_output = num_commands;
 				retval += 1;
 			}
 		}
@@ -166,14 +166,19 @@ Command *tokenize(char *string)
 		command = (Command *)malloc(sizeof(Command));
 		command->__command_str = this_command;
 		int redir_io = redirect_io(command, this_command);
-		if (redir_io == -1) {
+		if (redir_io == -1)
+		{
 			cmd_valid = 0;
 			return NULL;
-		} else if (redir_io >= 2 && num_commands > 1) {
+		}
+		else if (redir_io >= 2 && num_commands > 1)
+		{
 			printf("Syntax error: Input file is only allowed in first command");
 			cmd_valid = 0;
 			return NULL;
-		} else if (redir_io >= 1 && redir_output >= 2) {
+		}
+		if (redir_output > -1 && redir_output != num_commands)
+		{
 			printf("Syntax error: Output file is only allowed in last command");
 			cmd_valid = 0;
 			return NULL;
@@ -201,7 +206,6 @@ Command *tokenize(char *string)
 			if (mysh_debug)
 				printf("Token %d: %s\n", token_count, tokens[token_count]);
 
-
 			if (token_count == 0)
 			{
 				// Get absolute path of command's binary file
@@ -212,9 +216,8 @@ Command *tokenize(char *string)
 					return NULL;
 				}
 			}
-			
-			token_count++;
 
+			token_count++;
 
 			// if there are more tokens than space ,reallocate more space
 			if (token_count >= size)
@@ -232,6 +235,13 @@ Command *tokenize(char *string)
 	return command;
 }
 
+void reset_variables()
+{
+	num_commands = 0;
+	redir_output = -1;
+	cmd_valid = 1;
+}
+
 void read_command()
 {
 
@@ -241,9 +251,6 @@ void read_command()
 	if (mysh_debug)
 		printf("Shell read this line: %s", line);
 
-	num_commands = 0;
-	redir_output = 0;
-	cmd_valid = 1;
 	command = tokenize(line);
 }
 
@@ -277,6 +284,7 @@ int main(int argc, char **argv)
 			printf("\n******************* OUTPUT **********************\n");
 		run_command();
 		gc(command);
+		reset_variables();
 	} while (!do_exit);
 
 	return 0;
