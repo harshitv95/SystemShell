@@ -53,13 +53,10 @@ int create_process()
 }
 
 // Creates pipes for IPC between n processes
-// Each IPC needs 2 pipes,
-// n processes need a total of 2*n pipes
+// Each IPC needs between a pair of 2 process needs a single pair of pipes,
+// n processes need a total of n-1 pairs of pipes, or a total of (2*n)-1 pipes in general
 void create_pipes(int *pipes)
 {
-    // int pipes[2 * n];
-    // for (int i = 0; i < n; i++)
-    //     pipe(&pipes[i * 2]);
     if (pipe(pipes) == -1)
     {
         perror("[ERROR : pipe] While creating creating pipe");
@@ -75,7 +72,6 @@ int run(Command *command, int num_commands)
     if (num_commands > 1)
     {
         int pipes[2 * (num_commands - 1)];
-        // create_pipes(pipes, num_commands);
         int i;
         for (i = 0; i < num_commands; i++)
         {
@@ -95,17 +91,8 @@ int run(Command *command, int num_commands)
                 // Last process might write either to STDOUT or File
                 out_stream = (i != num_commands - 1) ? pipes[((i * 2) + 1)] : command->out_stream;
 
-                // if (i==0)
-                //     close(pipes[(i * 2)]);
-                // else if (i == num_commands-1)
-                //     close(pipes[(i - 1) * 2 + 1]);
                 if (i < num_commands - 1)
                     close(pipes[i * 2]);
-                // if (i != 0) {
-                //     close(pipes[( (i - 1) * 2 ) + 1]);
-                //     if (i == num_commands-1)
-                //         close(pipes[(i * 2) + 1]);
-                // }
 
                 exec_child(command, in_stream, out_stream, -1);
             }
@@ -113,27 +100,24 @@ int run(Command *command, int num_commands)
             {
                 // Parent process
 
-                // Parent does not need input or output end of pipe
-                // if (i > 0) {
-                //     // close(pipes[(i - 1) * 2]);
-                //     close(pipes[((i - 1) * 2) + 1]);
+                // Parent does not need input or output end of pipe created by process i,
+                // and neither does the next child i + 1
+
                 if (i > 1)
+                // Closing the read end of the pipe created by process i-2,
+                // since process i only reads inputs from pipe created by process i-1, and thus pipe of i-2 is not needed
                     close(pipes[(i - 2) * 2]);
                 if (i < num_commands - 1)
+                // Closing the write end of the pipe created by the current process i, in the parent,
+                // since this pipe is passed into the next child process i+1, which, just like the parent,
+                // does not need the write end of process i's pipe
                     close(pipes[(i * 2) + 1]);
-                // }
 
                 cmd_names[i] = command->tokens[0];
                 // Select next from Linked List of commands
                 command = command->next;
             }
         }
-        // if (i > 0) {
-        //     // close(pipes[(i - 1) * 2]);
-        //     close(pipes[((i - 1) * 2) + 1]);
-        //     if (i > 1)
-        //         close(pipes[(i - 2) * 2]);
-        // }
     }
     else
     {
@@ -146,10 +130,19 @@ int run(Command *command, int num_commands)
     }
 
     int status, pid;
+    int pids[num_commands], statuses[num_commands];
     for (int i = 0; i < num_commands; i++)
     {
         pid = wait(&status);
-        printf("Child [%s] with PID [%d] exited with status [%d]\n", cmd_names[i], pid, status);
+        pids[i] = pid;
+        statuses[i] = status;
+    }
+    // For the sake of simplicity of output and preventing the output from getting messy,
+    // printing the exit statuses and PIDs of all child processes after all the processes have finished
+    printf("\n");
+    for (int i = 0; i < num_commands; i++)
+    {
+        printf("Process [%s] with PID [%d] exited with status [%d]\n", cmd_names[i], pids[i], statuses[i]);
     }
     return num_commands;
 }
