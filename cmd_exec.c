@@ -28,7 +28,7 @@ void exec_child(Command *command, int input_stream, int output_stream, int error
         close(error_stream);
     }
 
-    exec_ret_val = execvp(command->command_file, args);
+    exec_ret_val = execv(command->command_file, args);
     if (exec_ret_val == -1)
     {
         perror("[ERROR : exec] While running child process");
@@ -139,10 +139,12 @@ int run(Command *command, int num_commands)
     }
     // For the sake of simplicity of output and preventing the output from getting messy,
     // printing the exit statuses and PIDs of all child processes after all the processes have finished
-    printf("\n");
-    for (int i = 0; i < num_commands; i++)
-    {
-        printf("Process [%s] with PID [%d] exited with status [%d]\n", cmd_names[i], pids[i], statuses[i]);
+    if (mysh_debug) {
+            printf("\n");
+        for (int i = 0; i < num_commands; i++)
+        {
+            printf("Process [%s] with PID [%d] exited with status [%d]\n", cmd_names[i], pids[i], statuses[i]);
+        }
     }
     return num_commands;
 }

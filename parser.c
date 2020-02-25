@@ -17,8 +17,6 @@ size_t MAX_LINE_LEN = 10000;
 
 // builtin commands
 #define EXIT_STR "exit"
-// #define EXIT_CMD 0
-// #define VALID_CMD 1
 #define CMD_SYNTAX_ERR 98
 #define UNKNOWN_CMD 99
 
@@ -26,7 +24,6 @@ size_t MAX_LINE_LEN = 10000;
 #define CMD_DIR "/bin/"
 
 FILE *fp; // file struct for stdin
-// char **tokens;
 char *line;
 
 Command *command;
@@ -66,21 +63,6 @@ char *get_command_file(char *cmd)
 	}
 
 	return NULL;
-}
-
-static int print_error(int err_code, Command *command, char *error_msg)
-{
-	switch (err_code)
-	{
-	case CMD_SYNTAX_ERR:
-		printf("Syntax error in command [%s], %s", command->__command_str, error_msg);
-		break;
-
-	default:
-		printf("Error in command [%s], %s", command->__command_str, error_msg);
-		break;
-	}
-	return 0;
 }
 
 int redirect_io(Command *command, char *cmd_str)
