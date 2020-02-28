@@ -1,3 +1,10 @@
+/**
+ * Command Shell
+ * 
+ * @author Harshit Vadodaria (harshitv95@gmail.com)
+ * @version 1.0
+ * */
+
 #include "utils.h"
 
 #include <ctype.h>

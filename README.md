@@ -1,4 +1,5 @@
 # Command Shell
+>   Developer : Harshit Vadodaria (harshitv95@gmail.com)
 
 A shell console, that supports commands with arguments, input as well output file redirection, and multiple commands separated by pipes, and all of these combined.
 

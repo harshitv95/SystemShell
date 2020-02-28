@@ -1,4 +1,4 @@
-Command Shell
+Command Shell (author: Harshit Vadodaria)
 A shell console, that supports commands with arguments, input as well output file redirection, and multiple commands separated by pipes, and all of these combined.
 
 Installation and Usage:
