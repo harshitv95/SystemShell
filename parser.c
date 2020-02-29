@@ -29,6 +29,7 @@ size_t MAX_LINE_LEN = 10000;
 
 // Configuration constants
 #define CMD_DIR "/bin/"
+#define CMD_USR_DIR "/usr/bin/"
 
 FILE *fp; // file struct for stdin
 char *line;
@@ -62,11 +63,15 @@ void initialize(int argc, char **argv)
 char *get_command_file(char *cmd)
 {
 	int len_cmd = (strlen(cmd)) + (strlen(CMD_DIR));
+	int len_cmd_usr = (strlen(cmd)) + (strlen(CMD_USR_DIR));
 	char *cmd_file = (char *)malloc(len_cmd); // To accomodate command + 5 characters of parent directory
+	char *cmd_file_usr = (char *)malloc(len_cmd_usr);
 	if (access(strcat(strcpy(cmd_file, CMD_DIR), cmd), F_OK) != -1)
 	{
 		// File exists
 		return cmd_file;
+	} else if (access(strcat(strcpy(cmd_file_usr, CMD_USR_DIR), cmd), F_OK) != -1) {
+		return cmd_file_usr;
 	}
 
 	return NULL;
